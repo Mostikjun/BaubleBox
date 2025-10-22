@@ -3,6 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AtmEx", "AtmEx", "{A9385D32-D31D-7BE1-0773-548DB0C26AAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AtmExTests", "AtmExTests\AtmExTests.csproj", "{7728F790-A9DA-4D76-84C1-9D331D49CF76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AtmEx", "AtmEx\AtmEx.csproj", "{62F25CE8-68E1-48B3-84AD-BE39B5C89338}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -10,5 +16,19 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7728F790-A9DA-4D76-84C1-9D331D49CF76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7728F790-A9DA-4D76-84C1-9D331D49CF76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7728F790-A9DA-4D76-84C1-9D331D49CF76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7728F790-A9DA-4D76-84C1-9D331D49CF76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62F25CE8-68E1-48B3-84AD-BE39B5C89338}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62F25CE8-68E1-48B3-84AD-BE39B5C89338}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62F25CE8-68E1-48B3-84AD-BE39B5C89338}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62F25CE8-68E1-48B3-84AD-BE39B5C89338}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7728F790-A9DA-4D76-84C1-9D331D49CF76} = {A9385D32-D31D-7BE1-0773-548DB0C26AAF}
+		{62F25CE8-68E1-48B3-84AD-BE39B5C89338} = {A9385D32-D31D-7BE1-0773-548DB0C26AAF}
 	EndGlobalSection
 EndGlobal
