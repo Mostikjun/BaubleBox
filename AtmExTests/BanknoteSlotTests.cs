@@ -15,7 +15,6 @@ public class BanknoteSlotTests
     public void Ctor_GivenInvalidNumber_ThrowsException()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new BanknoteSlot(100, -1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new BanknoteSlot(100, 0));
     }
 
     [Fact]

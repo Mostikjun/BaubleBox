@@ -2,19 +2,22 @@ namespace AtmEx;
 
 public class Atm
 {
+    private readonly IList<BanknoteSlot> _slots;
+
     public Atm(IEnumerable<BanknoteSlot> slots)
     {
-        var sortedByBanknoteAsc = slots.ToList();
-        sortedByBanknoteAsc.Sort((x, y) =>
-            x.Banknote < y.Banknote
-                ? -1
-                : x.Banknote > y.Banknote
-                    ? 1
-                    : 0);
-        Slots = sortedByBanknoteAsc.AsReadOnly();
-    }
+        var hasDuplicates = slots.GroupBy(x => x.Banknote).Any(x => x.Count() > 1);
+        if (hasDuplicates)
+        {
+            throw new ArgumentException(
+                nameof(slots),
+                $"Argument '{nameof(slots)}' contains banknote duplicates.");
+        }
 
-    public IReadOnlyList<BanknoteSlot> Slots { get; }
+        _slots = slots
+            .OrderBy(x => x.Banknote)
+            .ToList();
+    }
 
     public DispenseResult Dispense(int amount)
     {
@@ -34,14 +37,14 @@ public class Atm
             : DispenseResult.Failure;
     }
 
-    private IDictionary<int, TransitionalResult> GetTransitionalDispenses(int amount)
+    private TransitionalResult?[] GetTransitionalDispenses(int amount)
     {
         var transitionalAmount = 1;
-        var transitionalResults = new Dictionary<int, TransitionalResult>();
+        var transitionalResults = new TransitionalResult?[amount + 1];
 
         while (transitionalAmount <= amount)
         {
-            foreach (var slot in Slots)
+            foreach (var slot in _slots)
             {
                 if (transitionalAmount < slot.Banknote)
                 {
@@ -52,35 +55,31 @@ public class Atm
                 {
                     if (slot.Number > 0)
                     {
-                        transitionalResults[transitionalAmount] = new TransitionalResult(slot.Banknote, 1, slot.Number - 1);
+                        transitionalResults[transitionalAmount] = new TransitionalResult(
+                            slot.Banknote,
+                            1,
+                            _slots);
                     }
 
                     break;
                 }
 
-                var hasPrevTransitionalResult = transitionalResults.TryGetValue(
-                    transitionalAmount - slot.Banknote,
-                    out var prevTransitionalResult);
-                if (!hasPrevTransitionalResult)
+                var prevTransitionalResult = transitionalResults[transitionalAmount - slot.Banknote];
+                if (prevTransitionalResult == null)
                 {
                     continue;
                 }
 
-                var newAllocatedNumber = prevTransitionalResult!.AllocatedNumber + 1;
+                var newAllocatedNumber = prevTransitionalResult.AllocatedNumber + 1;
 
-                var hasCurrentTransitionalResult = transitionalResults.TryGetValue(
-                    transitionalAmount,
-                    out var curTransitionalResult);
-                if (hasCurrentTransitionalResult
-                    && curTransitionalResult!.AllocatedNumber < newAllocatedNumber)
+                var curTransitionalResult = transitionalResults[transitionalAmount];
+                if (curTransitionalResult != null
+                    && curTransitionalResult.AllocatedNumber < newAllocatedNumber)
                 {
                     continue;
                 }
 
-                var remaining = GetRemainingBanknoteNumber(
-                    slot.Banknote,
-                    transitionalAmount,
-                    transitionalResults);
+                var remaining = prevTransitionalResult.GetRemainingBanknoteNumber(slot.Banknote);
                 if (remaining <= 0)
                 {
                     continue;
@@ -89,7 +88,7 @@ public class Atm
                 transitionalResults[transitionalAmount] = new TransitionalResult(
                     slot.Banknote,
                     newAllocatedNumber,
-                    remaining - 1);
+                    prevTransitionalResult);
             }
 
             transitionalAmount++;
@@ -98,46 +97,11 @@ public class Atm
         return transitionalResults;
     }
 
-    private int GetRemainingBanknoteNumber(
-        int banknote,
-        int amount,
-        IDictionary<int, TransitionalResult> transitionalDispenses)
-    {
-        var remaining = Slots.FirstOrDefault(x => x.Banknote == banknote)?.Number ?? 0;
-        if (remaining == 0)
-        {
-            return 0;
-        }
-
-        while (amount > 0)
-        {
-            amount -= banknote;
-
-            transitionalDispenses.TryGetValue(
-                amount,
-                out var transitionalDispense);
-            if (transitionalDispense == null)
-            {
-                break;
-            }
-
-            if (transitionalDispense.Banknote == banknote)
-            {
-                remaining = transitionalDispense.RemainingNumber;
-                break;
-            }
-        }
-
-        return remaining;
-    }
-
     private IEnumerable<BanknoteSlot> GetDispenseSlots(
         int amount,
-        IDictionary<int, TransitionalResult> transitionalDispenses)
+        TransitionalResult?[] transitionalDispenses)
     {
-        transitionalDispenses.TryGetValue(
-            amount,
-            out var transitionalDispense);
+        var transitionalDispense = transitionalDispenses[amount];
 
         var dispenseSlots = new List<BanknoteSlot>();
         var transitionalAmount = amount;
@@ -147,9 +111,7 @@ public class Atm
 
             transitionalAmount -= transitionalDispense.Banknote;
 
-            transitionalDispenses.TryGetValue(
-                transitionalAmount,
-                out transitionalDispense);
+            transitionalDispense = transitionalDispenses[transitionalAmount];
         }
 
         return dispenseSlots

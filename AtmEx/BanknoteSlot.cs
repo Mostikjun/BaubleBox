@@ -5,7 +5,7 @@ public class BanknoteSlot
     public BanknoteSlot(int banknote, int number)
     {
         banknote.AssertPositive(nameof(banknote));
-        number.AssertPositive(nameof(number));
+        number.AssertNotNegative(nameof(number));
 
         Banknote = banknote;
         Number = number;
